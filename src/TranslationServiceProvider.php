@@ -34,6 +34,14 @@ class TranslationServiceProvider extends IlluminateTranslationServiceProvider
                     __DIR__.'/../database/migrations/create_language_lines_table.php.stub' => database_path('migrations/'.$timestamp.'_create_language_lines_table.php'),
                 ], 'migrations');
             }
+
+            if (! class_exists('UpdateLanguageLinesTableNamespace')) {
+                $timestamp = date('Y_m_d_His', time());
+
+                $this->publishes([
+                    __DIR__.'/../database/migrations/update_language_lines_table_namespace.php.stub' => database_path('migrations/'.$timestamp.'_update_language_lines_table_namespace.php'),
+                ], 'migrations');
+            }
         }
     }
 

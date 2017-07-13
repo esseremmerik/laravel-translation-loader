@@ -2,6 +2,7 @@
 
 namespace Spatie\TranslationLoader;
 
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Translation\FileLoader;
 use Spatie\TranslationLoader\TranslationLoaders\TranslationLoader;
 
@@ -19,6 +20,11 @@ class TranslationLoaderManager extends FileLoader
     public function load($locale, $group, $namespace = '*'): array
     {
         $fileTranslations = parent::load($locale, $group, $namespace);
+
+        if (! is_null($namespace) && $namespace !== '*' &&
+            (\app::runningInConsole() && !Schema::hasColumn(config('laravel-translation-loader.model'), 'namespace'))) {
+            return $fileTranslations;
+        }
 
         $loaderTranslations = $this->getTranslationsForTranslationLoaders($locale, $group, $namespace);
 

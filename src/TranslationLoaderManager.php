@@ -22,13 +22,12 @@ class TranslationLoaderManager extends FileLoader
         $fileTranslations = parent::load($locale, $group, $namespace);
 
         try {
-            $pdo = \DB::connection()->getPdo();
-            
+
             if (! is_null($namespace) && $namespace !== '*' &&
                 (\app::runningInConsole() && !Schema::hasColumn(config('laravel-translation-loader.model'), 'namespace'))) {
                 return $fileTranslations;
             }
-        } catch (\Doctrine\DBAL\Driver\PDOException $e) {
+        } catch (\Exception $e) {
             return $fileTranslations;
         }
         

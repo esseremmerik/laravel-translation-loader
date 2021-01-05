@@ -2,8 +2,9 @@
 
 namespace Spatie\TranslationLoader;
 
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 
 class LanguageLine extends Model
 {
@@ -18,30 +19,36 @@ class LanguageLine extends Model
 
     public static function boot()
     {
-        static::saved(function (LanguageLine $languageLine) {
-            $languageLine->flushGroupCache();
-        });
+        parent::boot();
 
-        static::deleted(function (LanguageLine $languageLine) {
+        $flushGroupCache = function (self $languageLine) {
             $languageLine->flushGroupCache();
-        });
+        };
+
+        static::saved($flushGroupCache);
+        static::deleted($flushGroupCache);
     }
 
     public static function getTranslationsForGroup(string $locale, string $group, string $namespace): array
     {
-        return Cache::rememberForever(static::getCacheKey($namespace, $group, $locale), function () use ($namespace, $group, $locale) {
+        return Cache::rememberForever(static::getCacheKey($namespace, $group, $locale), function () use ($group, $locale) {
             return static::query()
-                ->where('namespace', $namespace)
-                ->where('group', $group)
-                ->get()
-                ->map(function (LanguageLine $languageLine) use ($locale) {
-                    return [
-                        'key' => $languageLine->key,
-                        'text' => $languageLine->getTranslation($locale),
-                    ];
-                })
-                ->pluck('text', 'key')
-                ->toArray();
+                    ->where('namespace', $namespace)
+                    ->where('group', $group)
+                    ->get()
+                    ->reduce(function ($lines, self $languageLine) use ($group, $locale) {
+                        $translation = $languageLine->getTranslation($locale);
+
+                        if ($translation !== null && $group === '*') {
+                            // Make a flat array when returning json translations
+                            $lines[$languageLine->key] = $translation;
+                        } elseif ($translation !== null && $group !== '*') {
+                            // Make a nesetd array when returning normal translations
+                            Arr::set($lines, $languageLine->key, $translation);
+                        }
+
+                        return $lines;
+                    }) ?? [];
         });
     }
 
@@ -55,9 +62,15 @@ class LanguageLine extends Model
      *
      * @return string
      */
-    public function getTranslation(string $locale): string
+    public function getTranslation(string $locale): ?string
     {
-        return $this->text[$locale] ?? '';
+        if (! isset($this->text[$locale])) {
+            $fallback = config('app.fallback_locale');
+
+            return $this->text[$fallback] ?? null;
+        }
+
+        return $this->text[$locale];
     }
 
     /**
@@ -73,7 +86,7 @@ class LanguageLine extends Model
         return $this;
     }
 
-    protected function flushGroupCache()
+    public function flushGroupCache()
     {
         foreach ($this->getTranslatedLocales() as $locale) {
             Cache::forget(static::getCacheKey($this->namespace, $this->group, $locale));

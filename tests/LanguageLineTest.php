@@ -35,4 +35,18 @@ class LanguageLineTest extends TestCase
 
         $this->assertEquals('nederlands', $languageLine->getTranslation('nl'));
     }
+
+    /** @test */
+    public function it_doesnt_show_error_when_getting_nonexistent_translation()
+    {
+        $languageLine = $this->createLanguageLine('group', 'new', ['nl' => 'nederlands']);
+        $this->assertSame(null, $languageLine->getTranslation('en'));
+    }
+
+    /** @test */
+    public function get_fallback_locale_if_doesnt_exists()
+    {
+        $languageLine = $this->createLanguageLine('group', 'new', ['en' => 'English']);
+        $this->assertEquals('English', $languageLine->getTranslation('es'));
+    }
 }

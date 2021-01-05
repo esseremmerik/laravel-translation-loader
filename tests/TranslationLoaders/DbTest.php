@@ -3,17 +3,16 @@
 namespace Spatie\TranslationLoader\Test\TranslationLoaders;
 
 use DB;
-use Illuminate\Translation\Translator;
+use Spatie\TranslationLoader\Exceptions\InvalidConfiguration;
 use Spatie\TranslationLoader\LanguageLine;
 use Spatie\TranslationLoader\Test\TestCase;
-use Spatie\TranslationLoader\Exceptions\InvalidConfiguration;
 
 class DbTest extends TestCase
 {
     /** @var \Spatie\TranslationLoader\LanguageLine */
     protected $languageLine;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
     }
@@ -109,7 +108,7 @@ class DbTest extends TestCase
             }
         };
 
-        $this->app['config']->set('laravel-translation-loader.model', get_class($alternativeModel));
+        $this->app['config']->set('translation-loader.model', get_class($alternativeModel));
 
         $this->assertEquals('alternative class', trans('group.key'));
     }
@@ -120,7 +119,7 @@ class DbTest extends TestCase
         $invalidModel = new class {
         };
 
-        $this->app['config']->set('laravel-translation-loader.model', get_class($invalidModel));
+        $this->app['config']->set('translation-loader.model', get_class($invalidModel));
 
         $this->expectException(InvalidConfiguration::class);
 
@@ -129,14 +128,6 @@ class DbTest extends TestCase
 
     protected function flushIlluminateTranslatorCache()
     {
-        $loader = $this->app['translation.loader'];
-
-        $locale = $this->app['config']['app.locale'];
-
-        $trans = new Translator($loader, $locale);
-
-        $trans->setFallback($this->app['config']['app.fallback_locale']);
-
-        $this->app['translator'] = $trans;
+        $this->app['translator']->setLoaded([]);
     }
 }

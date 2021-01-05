@@ -2,6 +2,7 @@
 
 namespace Spatie\TranslationLoader;
 
+use Illuminate\Support\Str;
 use Illuminate\Translation\FileLoader;
 use Illuminate\Translation\TranslationServiceProvider as IlluminateTranslationServiceProvider;
 
@@ -14,7 +15,7 @@ class TranslationServiceProvider extends IlluminateTranslationServiceProvider
     {
         parent::register();
 
-        $this->mergeConfigFrom(__DIR__.'/../config/laravel-translation-loader.php', 'laravel-translation-loader');
+        $this->mergeConfigFrom(__DIR__.'/../config/translation-loader.php', 'translation-loader');
     }
 
     /**
@@ -22,9 +23,9 @@ class TranslationServiceProvider extends IlluminateTranslationServiceProvider
      */
     public function boot()
     {
-        if ($this->app->runningInConsole()) {
+        if ($this->app->runningInConsole() && ! Str::contains($this->app->version(), 'Lumen')) {
             $this->publishes([
-                __DIR__.'/../config/laravel-translation-loader.php' => config_path('laravel-translation-loader.php'),
+                __DIR__.'/../config/translation-loader.php' => config_path('translation-loader.php'),
             ], 'config');
 
             if (! class_exists('CreateLanguageLinesTable')) {
@@ -53,7 +54,9 @@ class TranslationServiceProvider extends IlluminateTranslationServiceProvider
     protected function registerLoader()
     {
         $this->app->singleton('translation.loader', function ($app) {
-            return new TranslationLoaderManager($app['files'], $app['path.lang']);
+            $class = config('translation-loader.translation_manager');
+
+            return new $class($app['files'], $app['path.lang']);
         });
     }
 }

@@ -3,8 +3,8 @@
 namespace Spatie\TranslationLoader\Test;
 
 use Illuminate\Support\Facades\Artisan;
-use Spatie\TranslationLoader\LanguageLine;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Spatie\TranslationLoader\LanguageLine;
 use Spatie\TranslationLoader\TranslationServiceProvider;
 
 abstract class TestCase extends Orchestra
@@ -12,7 +12,7 @@ abstract class TestCase extends Orchestra
     /** @var \Spatie\TranslationLoader\LanguageLine */
     protected $languageLine;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -43,8 +43,6 @@ abstract class TestCase extends Orchestra
     protected function getEnvironmentSetUp($app)
     {
         $app['path.lang'] = $this->getFixturesDirectory('lang');
-
-        $app['config']->set('database.default', 'sqlite');
 
         $app['config']->set('database.default', 'sqlite');
         $app['config']->set('database.connections.sqlite', [

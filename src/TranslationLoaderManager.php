@@ -30,7 +30,7 @@ class TranslationLoaderManager extends FileLoader
         } catch (\Exception $e) {
             return $fileTranslations;
         }
-        
+
         $loaderTranslations = $this->getTranslationsForTranslationLoaders($locale, $group, $namespace);
 
         return array_replace_recursive($fileTranslations, $loaderTranslations);
@@ -46,7 +46,7 @@ class TranslationLoaderManager extends FileLoader
                 return app($className);
             })
             ->mapWithKeys(function (TranslationLoader $translationLoader) use ($locale, $group, $namespace) {
-                return $translationLoader->loadTranslations($locale, $group, $namespace);
+                return $translationLoader->loadTranslations($namespace, $locale, $group);
             })
             ->toArray();
     }

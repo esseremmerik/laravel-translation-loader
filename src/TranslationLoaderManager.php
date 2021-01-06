@@ -22,9 +22,8 @@ class TranslationLoaderManager extends FileLoader
         $fileTranslations = parent::load($locale, $group, $namespace);
 
         try {
-
             if (! is_null($namespace) && $namespace !== '*' &&
-                (\app::runningInConsole() && !Schema::hasColumn(config('laravel-translation-loader.model'), 'namespace'))) {
+                (\app::runningInConsole() && ! Schema::hasColumn(config('laravel-translation-loader.model'), 'namespace'))) {
                 return $fileTranslations;
             }
         } catch (\Exception $e) {
